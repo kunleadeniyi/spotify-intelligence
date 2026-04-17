@@ -44,6 +44,29 @@ services:
       "
     networks:
       - spotify-net
+    
+  producer:
+    build:
+      context: . # project root
+      dockerfile: producer/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS_INTERNAL}
+      - KAFKA_TOPIC_PLAY_EVENTS=${KAFKA_TOPIC_PLAY_EVENTS}
+      - KAFKA_TOPIC_AUDIO_FEATURES=${KAFKA_TOPIC_AUDIO_FEATURES}
+      # env from SpotifyClient
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - SPOTIFY_REDIRECT_URI=${SPOTIFY_REDIRECT_URI}
+      - SPOTIFY_TOKEN_CACHE=/app/.cache
+    volumes:
+      - ./cache:/app/.cache
+    networks:
+      - spotify-net
+
 
   postgres:
     image: postgres:16
