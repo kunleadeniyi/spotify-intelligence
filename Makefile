@@ -1,4 +1,11 @@
-.PHONY: up down reset logs test lint dbt-run dbt-test kafka-topics help
+.PHONY: up down reset logs test lint dbt-run dbt-test kafka-topics install help
+
+# ─────────────────────────────────────────────
+# Environment
+# ─────────────────────────────────────────────
+
+install:
+	uv pip install -r requirements.txt
 
 # ─────────────────────────────────────────────
 # Infrastructure
@@ -73,6 +80,7 @@ help:
 	@echo ""
 	@echo "Spotify Intelligence Platform"
 	@echo "─────────────────────────────"
+	@echo "  make install         Install Python dependencies via uv"
 	@echo "  make up              Start all Docker services"
 	@echo "  make down            Stop all Docker services"
 	@echo "  make reset           Destroy all containers and volumes (destructive)"

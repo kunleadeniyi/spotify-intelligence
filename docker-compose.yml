@@ -99,7 +99,8 @@ services:
       MLFLOW_BACKEND_STORE_URI: postgresql+psycopg2://${PG_SPOTIFY_DB_USER}:${PG_SPOTIFY_DB_USER_PASSWORD}@postgres:5432/${PG_SPOTIFY_DB}
       MLFLOW_ARTIFACTS_DESTINATION: /mlflow/artifacts
     command: >
-      bash -c "pip install psycopg2-binary --quiet &&
+      bash -c "pip install uv --quiet &&
+      uv pip install psycopg2-binary --system --quiet &&
       mlflow server
       --backend-store-uri postgresql+psycopg2://${PG_SPOTIFY_DB_USER}:${PG_SPOTIFY_DB_USER_PASSWORD}@postgres:5432/${PG_SPOTIFY_DB}
       --artifacts-destination /mlflow/artifacts
