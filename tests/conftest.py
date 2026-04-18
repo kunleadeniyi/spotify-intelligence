@@ -1,7 +1,11 @@
 import os
 import pytest
 import uuid
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from confluent_kafka import Producer, Consumer
+from dotenv import load_dotenv
+load_dotenv()
 
 @pytest.fixture(scope="session")
 def kafka_bootstrap_servers():
@@ -21,3 +25,21 @@ def kafka_consumer(kafka_bootstrap_servers):
         'auto.offset.reset': 'earliest'
     }
     return Consumer(conf)
+
+@pytest.fixture
+def pg_conn():
+    conn = psycopg2.connect(
+        host=os.environ["POSTGRES_HOST"],
+        port=os.environ["POSTGRES_PORT"],
+        dbname=os.environ["PG_SPOTIFY_DB"],
+        user=os.environ["PG_SPOTIFY_DB_USER"],
+        password=os.environ["PG_SPOTIFY_DB_USER_PASSWORD"],
+        cursor_factory=RealDictCursor
+        )
+    conn.autocommit = False
+    yield conn
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM raw.play_events WHERE event_id LIKE 'test-event-%'")
+        cur.execute("DELETE FROM raw.track_audio_features WHERE track_id LIKE 'test-track-%'")
+    conn.commit()
+    conn.close()

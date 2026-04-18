@@ -67,6 +67,30 @@ services:
     networks:
       - spotify-net
 
+  consumer:
+    build:
+      context: . # project root
+      dockerfile: consumer/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS_INTERNAL}
+      - KAFKA_TOPIC_PLAY_EVENTS=${KAFKA_TOPIC_PLAY_EVENTS}
+      - KAFKA_TOPIC_AUDIO_FEATURES=${KAFKA_TOPIC_AUDIO_FEATURES}
+      - KAFKA_CONSUMER_GROUP_ID=${KAFKA_CONSUMER_GROUP_ID}
+      # env for database
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - PG_SPOTIFY_DB=${PG_SPOTIFY_DB}
+      - PG_SPOTIFY_DB_USER=${PG_SPOTIFY_DB_USER}
+      - PG_SPOTIFY_DB_USER_PASSWORD=${PG_SPOTIFY_DB_USER_PASSWORD}
+    networks:
+      - spotify-net
+
 
   postgres:
     image: postgres:16

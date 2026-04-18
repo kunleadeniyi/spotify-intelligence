@@ -36,3 +36,18 @@ CREATE TABLE IF NOT EXISTS raw.dlq (
     raw_payload     JSONB,
     CONSTRAINT dlq_pkey PRIMARY KEY (id)
 );
+
+
+-- Grants (must run after tables are created)
+GRANT USAGE ON SCHEMA raw TO "spotify-sa";
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA raw TO "spotify-sa";
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA raw TO "spotify-sa";
+
+GRANT USAGE ON SCHEMA staging TO "spotify-sa";
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA staging TO "spotify-sa";
+
+GRANT USAGE ON SCHEMA marts TO "spotify-sa";
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA marts TO "spotify-sa";
+
+GRANT USAGE ON SCHEMA feast TO "spotify-sa";
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA feast TO "spotify-sa";

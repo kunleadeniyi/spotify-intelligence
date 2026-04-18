@@ -44,23 +44,3 @@ def test_push_to_topic(kafka_producer, kafka_consumer):
     assert msg is not None
     assert msg.error() is None
     assert json.loads(msg.value().decode('utf-8')) == MOCK_RECENTLY_PLAYED
-
-
-@pytest.mark.integration
-def test_poll_returns_none_on_empty_topic(kafka_consumer):
-    """
-    Polling messages from empty topic should always return None. 
-    Topic used in this test: spotify.audio.features
-        Should be empty as other test push to spotify.play.events topic instead
-    """
-    kafka_consumer.subscribe(["spotify.audio.features"])
-
-    deadline = time.time() + 5
-    msg = None
-    while time.time() < deadline:
-        m = kafka_consumer.poll(timeout=1.0)
-        if m is not None:
-            msg = m
-            break
-
-    assert msg is None
