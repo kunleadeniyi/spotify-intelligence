@@ -130,7 +130,7 @@ def run() -> None:
 
     while _running:
         try:
-            new_track_ids: list[str] = []
+            new_tracks: list[dict] = []
 
             # recently_played is the primary source — has reliable played_at for deduplication
             recent = spotify.get_recently_played(limit=50)
@@ -156,16 +156,17 @@ def run() -> None:
                     },
                 )
                 seen.mark_seen(event_id, played_at)
-                new_track_ids.append(track["id"])
+                new_tracks.append(track)
                 logger.info(
                     "Published play event",
                     extra={"event_type": "play_event", "track_id": track["id"], "timestamp": played_at_str},
                 )
 
-            # Fetch and publish audio features only for newly seen tracks
-            if new_track_ids:
-                unique_ids = list(dict.fromkeys(new_track_ids))
-                features = spotify.get_audio_features(unique_ids)
+            # Generate and publish synthetic audio features for newly seen tracks
+            if new_tracks:
+                seen_ids: set[str] = set()
+                unique_tracks = [t for t in new_tracks if not (t["id"] in seen_ids or seen_ids.add(t["id"]))]
+                features = spotify.get_synthetic_audio_features(unique_tracks)
                 for feature in features:
                     kafka.send(
                         topic=topic_audio_features,

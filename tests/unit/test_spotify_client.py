@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import spotipy
 
-from producer.spotify_client import SpotifyClient
+from producer.spotify_client import SpotifyClient, _match_genre
 
 
 MOCK_CURRENTLY_PLAYING = {
@@ -38,31 +38,6 @@ MOCK_RECENTLY_PLAYED = {
         },
     ]
 }
-
-MOCK_AUDIO_FEATURES = [
-    {
-        "id": "track_abc123",
-        "danceability": 0.514,
-        "energy": 0.73,
-        "tempo": 171.005,
-        "valence": 0.334,
-        "acousticness": 0.00146,
-        "instrumentalness": 0.0000224,
-        "speechiness": 0.0598,
-        "loudness": -5.934,
-    },
-    {
-        "id": "track_def456",
-        "danceability": 0.673,
-        "energy": 0.813,
-        "tempo": 118.051,
-        "valence": 0.649,
-        "acousticness": 0.00253,
-        "instrumentalness": 0.0,
-        "speechiness": 0.0424,
-        "loudness": -5.49,
-    },
-]
 
 
 @pytest.fixture
@@ -124,29 +99,102 @@ class TestGetRecentlyPlayed:
         client._sp.current_user_recently_played.assert_called_once_with(limit=10)
 
 
-class TestGetAudioFeatures:
-    def test_returns_features(self, client):
-        client._sp.audio_features.return_value = MOCK_AUDIO_FEATURES
-        result = client.get_audio_features(["track_abc123", "track_def456"])
+
+MOCK_TRACKS = [
+    {"id": "track_abc123", "artists": [{"id": "artist_1"}]},
+    {"id": "track_def456", "artists": [{"id": "artist_2"}]},
+]
+
+
+class TestMatchGenre:
+    def test_exact_keyword_match(self):
+        assert _match_genre(["pop", "dance pop"]) == "pop"
+
+    def test_substring_match(self):
+        assert _match_genre(["dance pop"]) == "pop"
+
+    def test_more_specific_genre_wins(self):
+        # "hip-hop" appears before "pop" in _GENRE_PROFILES
+        assert _match_genre(["hip-hop pop"]) == "hip-hop"
+
+    def test_returns_default_for_unknown_genre(self):
+        assert _match_genre(["zydeco experimental"]) == "default"
+
+    def test_returns_default_for_empty_genres(self):
+        assert _match_genre([]) == "default"
+
+
+class TestGetArtistGenres:
+    def test_returns_genre_dict(self, client):
+        client._sp.artists.return_value = {
+            "artists": [
+                {"id": "artist_1", "genres": ["pop", "dance pop"]},
+                {"id": "artist_2", "genres": ["hip-hop", "rap"]},
+            ]
+        }
+        result = client.get_artist_genres(["artist_1", "artist_2"])
+        assert result == {
+            "artist_1": ["pop", "dance pop"],
+            "artist_2": ["hip-hop", "rap"],
+        }
+
+    def test_returns_empty_dict_for_empty_input(self, client):
+        result = client.get_artist_genres([])
+        client._sp.artists.assert_not_called()
+        assert result == {}
+
+    def test_batches_over_50_artist_ids(self, client):
+        client._sp.artists.return_value = {"artists": []}
+        client.get_artist_genres([f"artist_{i}" for i in range(75)])
+        assert client._sp.artists.call_count == 2
+
+    def test_handles_none_artist_in_response(self, client):
+        client._sp.artists.return_value = {
+            "artists": [{"id": "artist_1", "genres": ["rock"]}, None]
+        }
+        result = client.get_artist_genres(["artist_1", "artist_bad"])
+        assert "artist_1" in result
+        assert None not in result
+
+
+class TestGetSyntheticAudioFeatures:
+    def test_returns_features_for_all_tracks(self, client):
+        client._sp.artists.return_value = {
+            "artists": [
+                {"id": "artist_1", "genres": ["pop"]},
+                {"id": "artist_2", "genres": ["rock"]},
+            ]
+        }
+        result = client.get_synthetic_audio_features(MOCK_TRACKS)
         assert len(result) == 2
         assert result[0]["id"] == "track_abc123"
+        assert result[1]["id"] == "track_def456"
+
+    def test_synthetic_flag_is_set(self, client):
+        client._sp.artists.return_value = {"artists": [{"id": "artist_1", "genres": ["pop"]}]}
+        result = client.get_synthetic_audio_features([MOCK_TRACKS[0]])
+        assert result[0]["synthetic"] is True
 
     def test_returns_empty_list_for_empty_input(self, client):
-        result = client.get_audio_features([])
-        client._sp.audio_features.assert_not_called()
+        result = client.get_synthetic_audio_features([])
+        client._sp.artists.assert_not_called()
         assert result == []
 
-    def test_filters_out_none_features(self, client):
-        client._sp.audio_features.return_value = [MOCK_AUDIO_FEATURES[0], None]
-        result = client.get_audio_features(["track_abc123", "track_bad"])
-        assert len(result) == 1
+    def test_falls_back_to_default_for_unknown_genre(self, client):
+        client._sp.artists.return_value = {"artists": [{"id": "artist_1", "genres": ["zydeco experimental"]}]}
+        result = client.get_synthetic_audio_features([MOCK_TRACKS[0]])
+        assert result[0]["id"] == "track_abc123"
+        assert "danceability" in result[0]
 
-    def test_batches_over_100_track_ids(self, client):
-        track_ids = [f"track_{i}" for i in range(150)]
-        client._sp.audio_features.return_value = []
-        client.get_audio_features(track_ids)
-        assert client._sp.audio_features.call_count == 2
-        first_batch = client._sp.audio_features.call_args_list[0][0][0]
-        second_batch = client._sp.audio_features.call_args_list[1][0][0]
-        assert len(first_batch) == 100
-        assert len(second_batch) == 50
+    def test_known_genre_maps_to_expected_profile(self, client):
+        client._sp.artists.return_value = {"artists": [{"id": "artist_1", "genres": ["classical"]}]}
+        result = client.get_synthetic_audio_features([MOCK_TRACKS[0]])
+        assert result[0]["acousticness"] > 0.5
+
+    def test_features_within_valid_range(self, client):
+        client._sp.artists.return_value = {"artists": [{"id": "artist_1", "genres": ["edm"]}]}
+        result = client.get_synthetic_audio_features([MOCK_TRACKS[0]])
+        f = result[0]
+        for field in ("danceability", "energy", "valence", "acousticness", "instrumentalness", "speechiness"):
+            assert 0.0 <= f[field] <= 1.0
+        assert f["tempo"] > 0
