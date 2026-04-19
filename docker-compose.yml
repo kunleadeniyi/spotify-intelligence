@@ -61,9 +61,9 @@ services:
       - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
       - SPOTIFY_REDIRECT_URI=${SPOTIFY_REDIRECT_URI}
-      - SPOTIFY_TOKEN_CACHE=/app/.cache
+      - SPOTIFY_TOKEN_CACHE=/app/cache/.cache
     volumes:
-      - ./cache:/app/.cache
+      - ./cache:/app/cache
     networks:
       - spotify-net
 
@@ -83,7 +83,7 @@ services:
       - KAFKA_TOPIC_AUDIO_FEATURES=${KAFKA_TOPIC_AUDIO_FEATURES}
       - KAFKA_CONSUMER_GROUP_ID=${KAFKA_CONSUMER_GROUP_ID}
       # env for database
-      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_HOST=${POSTGRES_HOST_INTERNAL}
       - POSTGRES_PORT=${POSTGRES_PORT}
       - PG_SPOTIFY_DB=${PG_SPOTIFY_DB}
       - PG_SPOTIFY_DB_USER=${PG_SPOTIFY_DB_USER}
