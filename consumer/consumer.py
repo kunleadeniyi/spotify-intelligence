@@ -11,14 +11,17 @@ from datetime import datetime, timezone
 # Structured JSON logging
 class _JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
-        return json.dumps({
+        log: dict = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
             **{k: v for k, v in record.__dict__.items()
                if k not in logging.LogRecord.__dict__ and not k.startswith("_")},
-        })
+        }
+        if record.exc_info:
+            log["exc_info"] = self.formatException(record.exc_info)
+        return json.dumps(log)
 
 
 def _configure_logging() -> None:
@@ -33,7 +36,7 @@ logger = logging.getLogger(__name__)
 class EventConsumer:
     def __init__(self):
         config = {
-            "bootstrap.servers": os.environ["KAFKA_BOOTSTRAP_SERVERS_INTERNAL"],
+            "bootstrap.servers": os.environ["KAFKA_BOOTSTRAP_SERVERS"],
             "group.id": os.environ["KAFKA_CONSUMER_GROUP_ID"],
             "auto.offset.reset": "earliest",
             "enable.auto.commit": False,
