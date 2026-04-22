@@ -1,0 +1,12 @@
+spotify_intelligence:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      port: 5432
+      dbname: spotify
+      user: spotify-sa
+      password: "{{ env_var('PG_SPOTIFY_DB_USER_PASSWORD') }}" # must be set locally, dbt wont pick from .env
+      schema: public
+      threads: 4

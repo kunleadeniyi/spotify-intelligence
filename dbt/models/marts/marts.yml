@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: mart_user_play_history
+    columns:
+      - name: event_id
+        data_tests:
+          - not_null
+          - unique
+      - name: track_id
+        data_tests:
+          - not_null
+      - name: played_at
+        data_tests:
+          - not_null
+
+  - name: mart_daily_stats
+    columns:
+      - name: play_date
+        data_tests:
+          - not_null
+          - unique
+
+  - name: mart_top_tracks
+    columns:
+      - name: track_id
+        data_tests:
+          - not_null
+          - unique
+
+  - name: mart_top_artists
+    columns:
+      - name: artist_id
+        data_tests:
+          - not_null
+          - unique
+
+  - name: mart_top_genres
+    columns:
+      - name: genre
+        data_tests:
+          - not_null
+          - unique
+
+  - name: mart_listening_heatmap
+    columns:
+      - name: play_count
+        data_tests:
+          - not_null
+
+  - name: mart_user_taste_profile
+    columns:
+      - name: avg_danceability
+        data_tests:
+          - not_null
