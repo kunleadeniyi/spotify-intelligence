@@ -24,6 +24,13 @@ CREATE TABLE IF NOT EXISTS raw.track_audio_features (
     CONSTRAINT track_audio_features_pkey PRIMARY KEY (track_id)
 );
 
+-- raw.artist_genres
+CREATE TABLE IF NOT EXISTS raw.artist_genres (
+    artist_id   TEXT NOT NULL,
+    genres      TEXT[] NOT NULL,
+    fetched_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT artist_genres_pkey PRIMARY KEY (artist_id)
+);
 
 -- raw.dlq  (dead letter queue)
 CREATE TABLE IF NOT EXISTS raw.dlq (
@@ -45,9 +52,11 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA raw TO "spotify-sa";
 
 GRANT USAGE ON SCHEMA staging TO "spotify-sa";
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA staging TO "spotify-sa";
+GRANT CREATE ON SCHEMA staging TO "spotify-sa";
 
 GRANT USAGE ON SCHEMA marts TO "spotify-sa";
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA marts TO "spotify-sa";
+GRANT CREATE ON SCHEMA marts TO "spotify-sa";
 
 GRANT USAGE ON SCHEMA feast TO "spotify-sa";
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA feast TO "spotify-sa";
