@@ -85,6 +85,23 @@ class EventConsumer:
             ))
         self._conn.commit()
 
+    def _write_artist_genres(self, value: dict) -> None:
+        sql = """
+            INSERT INTO raw.artist_genres( artist_id, genres, fetched_at)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (artist_id) DO UPDATE
+                SET fetched_at =  EXCLUDED.fetched_at,
+                    genres = EXCLUDED.genres
+        
+        """
+        with self._conn.cursor() as cur:
+            cur.execute(sql, (
+                    value["artist_id"],
+                    value["genres"],
+                    value["timestamp"]
+            ))
+        self._conn.commit()
+
     def _write_dlq(self, msg: Message, error: Exception) -> None:
         sql = """
             INSERT INTO raw.dlq (topic, "partition", "offset", error, raw_payload)
@@ -116,6 +133,8 @@ class EventConsumer:
                 self._write_play_event(value)
             elif value["event_type"] == "audio_features":
                 self._write_audio_features(value)
+            elif value["event_type"] == "artist_genres":
+                self._write_artist_genres(value)
             else:
                 logger.warning("Unknown event_type", extra={"event_type": value.get("event_type")})
 
@@ -165,7 +184,7 @@ def run():
     signal.signal(signal.SIGTERM, _handle_shutdown)
     signal.signal(signal.SIGINT, _handle_shutdown)
 
-    topics = [os.environ["KAFKA_TOPIC_PLAY_EVENTS"], os.environ["KAFKA_TOPIC_AUDIO_FEATURES"]]
+    topics = [os.environ["KAFKA_TOPIC_PLAY_EVENTS"], os.environ["KAFKA_TOPIC_AUDIO_FEATURES"], os.environ["KAFKA_TOPIC_ARTIST_GENRES"]]
 
     logger.info("Consumer started", extra={"topics": topics})
     EventConsumer().consume_loop(topics=topics, stop_event=stop_event)

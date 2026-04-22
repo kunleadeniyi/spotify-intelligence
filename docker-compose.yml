@@ -40,6 +40,7 @@ services:
       bash -c "
         /opt/kafka/bin/kafka-topics.sh --bootstrap-server broker:29092 --create --if-not-exists --topic spotify.play.events --partitions 3 --replication-factor 1 &&
         /opt/kafka/bin/kafka-topics.sh --bootstrap-server broker:29092 --create --if-not-exists --topic spotify.audio.features --partitions 1 --replication-factor 1 &&
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server broker:29092 --create --if-not-exists --topic spotify.artist.genres --partitions 1 --replication-factor 1 &&
         echo 'Kafka topics created successfully.'
       "
     networks:
@@ -57,6 +58,7 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS_INTERNAL}
       - KAFKA_TOPIC_PLAY_EVENTS=${KAFKA_TOPIC_PLAY_EVENTS}
       - KAFKA_TOPIC_AUDIO_FEATURES=${KAFKA_TOPIC_AUDIO_FEATURES}
+      - KAFKA_TOPIC_ARTIST_GENRES=${KAFKA_TOPIC_ARTIST_GENRES}
       # env from SpotifyClient
       - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
@@ -81,6 +83,7 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS_INTERNAL}
       - KAFKA_TOPIC_PLAY_EVENTS=${KAFKA_TOPIC_PLAY_EVENTS}
       - KAFKA_TOPIC_AUDIO_FEATURES=${KAFKA_TOPIC_AUDIO_FEATURES}
+      - KAFKA_TOPIC_ARTIST_GENRES=${KAFKA_TOPIC_ARTIST_GENRES}
       - KAFKA_CONSUMER_GROUP_ID=${KAFKA_CONSUMER_GROUP_ID}
       # env for database
       - POSTGRES_HOST=${POSTGRES_HOST_INTERNAL}

@@ -125,6 +125,7 @@ def run() -> None:
 
     topic_play_events = os.environ["KAFKA_TOPIC_PLAY_EVENTS"]
     topic_audio_features = os.environ["KAFKA_TOPIC_AUDIO_FEATURES"]
+    topic_artist_genres = os.environ["KAFKA_TOPIC_ARTIST_GENRES"]
 
     logger.info("Producer started", extra={"poll_interval": POLL_INTERVAL_SECONDS})
 
@@ -181,6 +182,26 @@ def run() -> None:
                     logger.info(
                         "Published audio features",
                         extra={"event_type": "audio_features", "track_id": feature["id"], "timestamp": datetime.now(timezone.utc).isoformat()},
+                    )
+
+                all_artist_ids = list({
+                    artist["id"] for track in unique_tracks for artist in track.get("artists", [])
+                })
+                artist_genres = spotify.get_artist_genres(all_artist_ids)
+                for artist_id, genres in artist_genres.items():
+                    kafka.send(
+                        topic=topic_artist_genres,
+                        key=artist_id,
+                        value={
+                            "event_type": "artist_genres",
+                            "artist_id": artist_id,
+                            "genres": genres,
+                            "timestamp": datetime.now(timezone.utc).isoformat()
+                        }
+                    )
+                    logger.info(
+                        "Published artist genres", 
+                        extra={"event_type": "artist_genres", "artist_id": artist_id},
                     )
 
             kafka.flush()
