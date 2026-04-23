@@ -1,5 +1,9 @@
 -- Average and variance of audio features across all plays. Represents the user's overall taste
 select
+    'default_user'                  as user_id,
+    now()                           as computed_at,
+    -- adding above columns because feature store needs a time and an entity key. 
+    -- In this case the user is the entity and there is only one user as it is a personal project.
     avg(danceability)               as avg_danceability,
     avg(energy)                     as avg_energy,
     avg(valence)                    as avg_valence,
@@ -18,3 +22,4 @@ select
     variance(loudness)              as var_loudness
 from {{ ref('mart_user_play_history') }}
 where danceability is not null
+
