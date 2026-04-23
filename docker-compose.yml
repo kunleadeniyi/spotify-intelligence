@@ -214,15 +214,21 @@ services:
       - spotify-net
 
   prefect-worker:
-    image: prefecthq/prefect:3-latest
+    build:
+      context: .
+      dockerfile: orchestration/Dockerfile
+    volumes:
+      - .:/app
     depends_on:
       prefect-server:
         condition: service_healthy
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
-    command: prefect worker start --pool local-pool
+      PG_SPOTIFY_DB_USER_PASSWORD: ${PG_SPOTIFY_DB_USER_PASSWORD}
+      DBT_PROJECT_DIR: /app/dbt
+      DBT_PROFILES_DIR: /app/dbt/profiles
     restart: on-failure
-    networks: 
+    networks:
       - spotify-net
 
 
