@@ -3,7 +3,7 @@ spotify_intelligence:
   outputs:
     dev:
       type: postgres
-      host: localhost
+      host: "{{ env_var('PG_HOST', 'localhost') }}"
       port: 5432
       dbname: spotify
       user: spotify-sa
