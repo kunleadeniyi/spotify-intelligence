@@ -225,7 +225,7 @@ services:
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
       PG_SPOTIFY_DB_USER_PASSWORD: ${PG_SPOTIFY_DB_USER_PASSWORD}
-      PG_HOST: postgres
+      POSTGRES_HOST: ${POSTGRES_HOST_INTERNAL}
       DBT_PROJECT_DIR: /app/dbt
       DBT_PROFILES_DIR: /app/dbt/profiles
     restart: on-failure
