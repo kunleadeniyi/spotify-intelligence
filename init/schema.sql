@@ -58,5 +58,19 @@ GRANT USAGE ON SCHEMA marts TO "spotify-sa";
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA marts TO "spotify-sa";
 GRANT CREATE ON SCHEMA marts TO "spotify-sa";
 
-GRANT USAGE ON SCHEMA feast TO "spotify-sa";
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA feast TO "spotify-sa";
+-- feast-sa: read-only access to feature source schemas, full access to feast schema
+GRANT USAGE ON SCHEMA raw TO "feast-sa";
+GRANT SELECT ON ALL TABLES IN SCHEMA raw TO "feast-sa";
+
+GRANT USAGE ON SCHEMA staging TO "feast-sa";
+GRANT SELECT ON ALL TABLES IN SCHEMA staging TO "feast-sa";
+
+GRANT USAGE ON SCHEMA marts TO "feast-sa";
+GRANT SELECT ON ALL TABLES IN SCHEMA marts TO "feast-sa";
+
+GRANT ALL PRIVILEGES ON SCHEMA feast TO "feast-sa";
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA feast TO "feast-sa";
+GRANT CREATE ON SCHEMA feast TO "feast-sa";
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA staging GRANT SELECT ON TABLES TO "feast-sa";
+ALTER DEFAULT PRIVILEGES IN SCHEMA marts GRANT SELECT ON TABLES TO "feast-sa";

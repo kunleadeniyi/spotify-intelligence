@@ -3,7 +3,7 @@ provider: local
 
 registry:
   registry_type: sql
-  path: postgresql+psycopg2://spotify-sa:${PG_SPOTIFY_DB_USER_PASSWORD}@${POSTGRES_HOST}:5432/spotify
+  path: postgresql+psycopg2://${FEAST_DB_USER}:${FEAST_DB_USER_PASSWORD}@${POSTGRES_HOST}:5432/spotify
 
 offline_store:
   type: postgres
@@ -11,8 +11,8 @@ offline_store:
   port: 5432
   database: spotify
   db_schema: feast
-  user: spotify-sa
-  password: ${PG_SPOTIFY_DB_USER_PASSWORD}
+  user: ${FEAST_DB_USER}
+  password: ${FEAST_DB_USER_PASSWORD}
 
 online_store:
   type: redis
