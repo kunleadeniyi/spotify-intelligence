@@ -238,6 +238,49 @@ services:
     networks:
       - spotify-net
 
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mlflow:
+        condition: service_healthy
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5555
+      MLFLOW_EXPERIMENT_NAME: ${MLFLOW_EXPERIMENT_NAME}
+      POSTGRES_HOST: ${POSTGRES_HOST_INTERNAL}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      PG_SPOTIFY_DB: ${PG_SPOTIFY_DB}
+      PG_SPOTIFY_DB_USER: ${PG_SPOTIFY_DB_USER}
+      PG_SPOTIFY_DB_USER_PASSWORD: ${PG_SPOTIFY_DB_USER_PASSWORD}
+      FEAST_DB_USER: ${FEAST_DB_USER}
+      FEAST_DB_USER_PASSWORD: ${FEAST_DB_USER_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST_INTERNAL}
+      REDIS_PORT: ${REDIS_PORT}
+      SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID}
+      SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET}
+      SPOTIFY_REDIRECT_URI: ${SPOTIFY_REDIRECT_URI}
+      SPOTIFY_TOKEN_CACHE: ${SPOTIFY_TOKEN_CACHE}
+      LASTFM_API_KEY: ${LASTFM_API_KEY}
+      PYTHONPATH: /app
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/health', timeout=1)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    restart: on-failure
+    networks:
+      - spotify-net
+
 
 networks:
   spotify-net:
