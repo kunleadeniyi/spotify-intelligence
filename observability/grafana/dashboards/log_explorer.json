@@ -1,0 +1,86 @@
+{
+  "title": "Log Explorer",
+  "uid": "log-explorer",
+  "timezone": "browser",
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "type": "query",
+        "datasource": { "type": "loki", "uid": "loki" },
+        "query": {
+          "type": "labelValues",
+          "label": "container_name",
+          "stream": ""
+        },
+        "refresh": 2,
+        "label": "Container",
+        "includeAll": true,
+        "allValue": ".+",
+        "multi": false
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Log Volume by Container (lines/s)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum by (container_name) (rate({container_name=~\"$service\"}[1m]))",
+          "legendFormat": "{{container_name}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "ERROR lines/s by Container",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum by (container_name) (rate({container_name=~\"$service\"} |= \"ERROR\" [1m]))",
+          "legendFormat": "{{container_name}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "WARNING lines/s by Container",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum by (container_name) (rate({container_name=~\"$service\"} |= \"WARNING\" [1m]))",
+          "legendFormat": "{{container_name}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Live Logs",
+      "type": "logs",
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 16 },
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "{container_name=~\"$service\"}",
+          "legendFormat": ""
+        }
+      ]
+    }
+  ]
+}

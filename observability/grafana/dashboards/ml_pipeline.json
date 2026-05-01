@@ -1,0 +1,106 @@
+{
+  "title": "ML Pipeline",
+  "uid": "ml-pipeline",
+  "timezone": "browser",
+  "refresh": "1m",
+  "schemaVersion": 38,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Recommendations Served — ML vs Last.fm (total)",
+      "type": "piechart",
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "recommendations_served_total",
+          "legendFormat": "{{source}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Recommendations Served Rate (per min)",
+      "type": "timeseries",
+      "gridPos": { "x": 8, "y": 0, "w": 16, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "rate(recommendations_served_total[5m]) * 60",
+          "legendFormat": "{{source}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "API /recommend Latency p95 (s)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{handler=\"/recommend\"}[5m]))",
+          "legendFormat": "p95 /recommend"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "API /spotify-recommend Latency p95 (s)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{handler=\"/spotify-recommend\"}[5m]))",
+          "legendFormat": "p95 /spotify-recommend"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Prefect Worker — Flow Errors (from logs)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "rate({container_name=\"spotify-intelligence-prefect-worker-1\"} |= \"ERROR\" [5m])",
+          "legendFormat": "flow errors/s"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Feature Materialization Events (from logs)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "rate({container_name=\"spotify-intelligence-prefect-worker-1\"} |= \"materialize\" [5m])",
+          "legendFormat": "materialization events/s"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Prefect Worker Logs",
+      "type": "logs",
+      "gridPos": { "x": 0, "y": 24, "w": 24, "h": 12 },
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "{container_name=\"spotify-intelligence-prefect-worker-1\"}",
+          "legendFormat": ""
+        }
+      ]
+    }
+  ]
+}

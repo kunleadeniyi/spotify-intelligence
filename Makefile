@@ -1,4 +1,4 @@
-.PHONY: up down reset logs test lint dbt-run dbt-test kafka-topics install dashboard help
+.PHONY: up down reset logs test lint dbt-run dbt-test kafka-topics install dashboard observability help
 
 # ─────────────────────────────────────────────
 # Environment
@@ -67,6 +67,15 @@ dashboard:
 	PYTHONPATH=. streamlit run dashboard/app.py
 
 # ─────────────────────────────────────────────
+# Observability
+# ─────────────────────────────────────────────
+
+observability:
+	docker compose --profile observability up -d
+	@echo "Grafana: http://localhost:3000 (admin / admin)"
+	@echo "Prometheus: http://localhost:9090"
+
+# ─────────────────────────────────────────────
 # dbt
 # ─────────────────────────────────────────────
 
@@ -103,4 +112,5 @@ help:
 	@echo "  make dbt-test        Run dbt data tests"
 	@echo "  make dbt-docs        Generate and serve dbt docs"
 	@echo "  make dashboard       Run Streamlit dashboard locally"
+	@echo "  make observability   Start observability stack (Grafana, Prometheus, Loki, Alloy)"
 	@echo ""
