@@ -9,7 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 
 logger = logging.getLogger(__name__)
 
-SCOPES = "user-read-currently-playing user-read-recently-played"
+SCOPES = "user-read-currently-playing user-read-recently-played playlist-modify-public playlist-modify-private"
 
 # Genre keyword → baseline audio feature profile.
 # Keys are checked against Spotify genre tags via substring match (e.g. "indie rock" matches "rock").
