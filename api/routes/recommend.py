@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException
 
 from api.dependencies import get_model, get_model_version, get_store
+from api.metrics import recommendations_served
 from api.models import RecommendRequest, RecommendResponse, TrackRecommendation
 from api.services.recommender import fetch_candidate_features, score_candidates
 from ml.train import FEATURE_COLS
@@ -32,6 +33,7 @@ def recommend(request: RecommendRequest):
         for _, row in scores_with_features.iterrows()
     ]
 
+    recommendations_served.labels(source="ml").inc(len(recommendations))
     return RecommendResponse(
         recommendations=recommendations,
         model_version=get_model_version(),

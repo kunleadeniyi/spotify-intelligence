@@ -3,8 +3,10 @@ import uuid
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from api.dependencies import lifespan
+from api.metrics import recommendations_served  # noqa: F401 — ensures counter is registered
 from api.routes import health, recommend, spotify
 
 logging.basicConfig(
@@ -38,3 +40,5 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(health.router)
 app.include_router(recommend.router)
 app.include_router(spotify.router)
+
+Instrumentator().instrument(app).expose(app)

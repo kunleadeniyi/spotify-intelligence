@@ -5,6 +5,7 @@ import numpy as np
 from fastapi import APIRouter, HTTPException
 
 from api.dependencies import get_model_version, get_taste_vector
+from api.metrics import recommendations_served
 from api.models import RecommendResponse, TrackRecommendation
 from api.services.spotify_svc import (
     get_lastfm_recommendations,
@@ -57,6 +58,7 @@ def spotify_recommend(limit: int = 20):
         )
 
     recommendations.sort(key=lambda r: r.similarity_score, reverse=True)
+    recommendations_served.labels(source="lastfm").inc(len(recommendations))
 
     return RecommendResponse(
         recommendations=recommendations[:limit],
