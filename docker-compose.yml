@@ -282,6 +282,36 @@ services:
       - spotify-net
 
 
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    volumes:
+      - .:/app
+      - ./cache:/app/cache
+    ports:
+      - "8501:8501"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST_INTERNAL}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      PG_SPOTIFY_DB: ${PG_SPOTIFY_DB}
+      PG_SPOTIFY_DB_USER: ${PG_SPOTIFY_DB_USER}
+      PG_SPOTIFY_DB_USER_PASSWORD: ${PG_SPOTIFY_DB_USER_PASSWORD}
+      STREAMLIT_API_BASE_URL: http://api:8000
+      SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID}
+      SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET}
+      SPOTIFY_REDIRECT_URI: ${SPOTIFY_REDIRECT_URI}
+      SPOTIFY_TOKEN_CACHE: /app/cache/.cache
+      PYTHONPATH: /app
+    restart: on-failure
+    networks:
+      - spotify-net
+
 networks:
   spotify-net:
     driver: bridge

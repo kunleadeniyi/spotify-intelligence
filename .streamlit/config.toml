@@ -1,0 +1,15 @@
+# Placed at the project root, not inside dashboard/, because Streamlit resolves
+# config relative to the working directory where the command is run (make dashboard
+# runs from root). The Docker container also sets WORKDIR /app (project root).
+
+[theme]
+base = "dark"
+textColor = "#e2e8f0"
+# primaryColor = "#615fff"
+# backgroundColor = "#1d293d"
+primaryColor = "#0aa98b"
+backgroundColor = "#013124"
+secondaryBackgroundColor = "#0f172b"
+# font must be one of: "sans serif", "serif", "monospace"
+# Space Grotesk is injected via CSS in app.py
+font = "sans serif"

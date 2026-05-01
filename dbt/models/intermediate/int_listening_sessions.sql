@@ -1,3 +1,6 @@
+/* need to materialise this because it is used in the dashboard */
+{{ config(materialized='view', schema='staging') }}
+
 /*
 A new session starts when the gap between consecutive plays exceeds 30 minutes.
 */

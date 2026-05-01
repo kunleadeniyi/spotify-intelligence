@@ -1,4 +1,4 @@
-.PHONY: up down reset logs test lint dbt-run dbt-test kafka-topics install help
+.PHONY: up down reset logs test lint dbt-run dbt-test kafka-topics install dashboard help
 
 # ─────────────────────────────────────────────
 # Environment
@@ -60,6 +60,13 @@ lint-fix:
 	ruff format .
 
 # ─────────────────────────────────────────────
+# Dashboard
+# ─────────────────────────────────────────────
+
+dashboard:
+	PYTHONPATH=. streamlit run dashboard/app.py
+
+# ─────────────────────────────────────────────
 # dbt
 # ─────────────────────────────────────────────
 
@@ -95,4 +102,5 @@ help:
 	@echo "  make dbt-run         Run all dbt models"
 	@echo "  make dbt-test        Run dbt data tests"
 	@echo "  make dbt-docs        Generate and serve dbt docs"
+	@echo "  make dashboard       Run Streamlit dashboard locally"
 	@echo ""
