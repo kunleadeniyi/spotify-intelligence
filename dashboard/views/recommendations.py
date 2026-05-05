@@ -2,7 +2,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from dashboard.api_client import get_lastfm_recommendations, get_ml_recommendations
-from dashboard.db import get_candidate_track_ids, get_taste_profile
+from dashboard.db import get_candidate_track_ids, get_taste_profile, get_track_metadata
 from dashboard.spotify_live import _get_client
 
 FEATURE_COLS = ["danceability", "energy", "valence",
@@ -56,6 +56,7 @@ def render():
     taste_dict = taste.to_dict() if not taste.empty else {}
 
     candidate_ids = get_candidate_track_ids(limit=20)
+    track_metadata = get_track_metadata()
 
     col_ml, col_lastfm = st.columns(2)
 
@@ -68,8 +69,10 @@ def render():
             st.warning("No ML recommendations returned. Check that the API and feature store are running.")
 
         for i, rec in enumerate(ml_recs, 1):
-            with st.expander(f"{i}. {rec['track_id']} — score: {rec['similarity_score']:.4f}"):
-                fig = _feature_bar(rec.get("audio_features", {}), taste_dict, rec["track_id"])
+            meta = track_metadata.get(rec["track_id"], {})
+            label = f"{meta['name']} — {meta['artist']}" if meta else rec["track_id"]
+            with st.expander(f"{i}. {label} — score: {rec['similarity_score']:.4f}"):
+                fig = _feature_bar(rec.get("audio_features", {}), taste_dict, label)
                 st.plotly_chart(fig, width='stretch')
 
     with col_lastfm:
