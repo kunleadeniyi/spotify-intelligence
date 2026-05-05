@@ -1,16 +1,20 @@
 import os 
-
 import psycopg2
 import pandas as pd
 
+from sqlalchemy import create_engine
+
 def _connect():
-    return psycopg2.connect(
-        host=os.environ.get("POSTGRES_HOST", "localhost"),
-        port=int(os.environ.get("POSTGRES_PORT", 5432)),
-        dbname=os.environ.get("PG_SPOTIFY_DB", "spotify"),
-        user=os.environ.get("PG_SPOTIFY_DB_USER"), 
-        password=os.environ.get("PG_SPOTIFY_DB_USER_PASSWORD"), 
-    )
+    host=os.environ.get("POSTGRES_HOST", "localhost")
+    port=int(os.environ.get("POSTGRES_PORT", 5432))
+    dbname=os.environ.get("PG_SPOTIFY_DB", "spotify")
+    user=os.environ.get("PG_SPOTIFY_DB_USER")
+    password=os.environ.get("PG_SPOTIFY_DB_USER_PASSWORD")
+
+    # Format: postgresql+psycopg2://user:password@host:port/dbname
+    url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}"
+    
+    return create_engine(url)
 
 def _window_col(window: str) -> str: 
     window_dict = {"7d": "plays_7d", "30d": "plays_30d", "365d": "plays_365d", "all_time": "plays_all_time"}
@@ -25,7 +29,7 @@ def get_top_tracks(window: str = "7d", limit: int = 10) -> pd.DataFrame:
             conn, params=(limit,),
         )
     finally:
-        conn.close()
+        conn.dispose()
 
 def get_top_artists(window: str = "7d", limit: int = 10) -> pd.DataFrame:
     col = _window_col(window)
@@ -36,7 +40,7 @@ def get_top_artists(window: str = "7d", limit: int = 10) -> pd.DataFrame:
             conn, params=(limit,),
         )
     finally:
-        conn.close()
+        conn.dispose()
 
 def get_top_genres(window: str = "7d", limit: int = 10) -> pd.DataFrame:
     col = _window_col(window)
@@ -47,7 +51,7 @@ def get_top_genres(window: str = "7d", limit: int = 10) -> pd.DataFrame:
             conn, params=(limit,),
         )
     finally:
-        conn.close()
+        conn.dispose()
 
 def get_daily_stats() -> pd.DataFrame:
     conn = _connect()
@@ -57,7 +61,7 @@ def get_daily_stats() -> pd.DataFrame:
             conn,
         )
     finally:
-        conn.close()
+        conn.dispose()
 
 def get_heatmap() -> pd.DataFrame:
     conn = _connect()
@@ -67,7 +71,7 @@ def get_heatmap() -> pd.DataFrame:
             conn,
         )
     finally:
-        conn.close()
+        conn.dispose()
 
 def get_taste_profile() -> pd.Series:
     conn = _connect()
@@ -78,7 +82,7 @@ def get_taste_profile() -> pd.Series:
         )
         return df.iloc[0] if not df.empty else pd.Series(dtype=float)
     finally:
-        conn.close()
+        conn.dispose()
 
 def get_current_session() -> pd.DataFrame:
     conn = _connect()
@@ -93,7 +97,7 @@ def get_current_session() -> pd.DataFrame:
             conn,
         )
     finally:
-        conn.close()
+        conn.dispose()
 
 def get_listening_streak() -> int:
     conn = _connect()
@@ -114,7 +118,7 @@ def get_listening_streak() -> int:
                 break
         return streak
     finally:
-        conn.close()
+        conn.dispose()
 
 
 def get_candidate_track_ids(limit: int = 20) -> list[str]:
@@ -126,4 +130,17 @@ def get_candidate_track_ids(limit: int = 20) -> list[str]:
         )
         return df["track_id"].tolist()
     finally:
-        conn.close()
+        conn.dispose()
+
+
+def get_track_metadata() -> dict[str, dict]:
+    """Return {track_id: {name, artist}} for all tracks in mart_top_tracks."""
+    conn = _connect()
+    try:
+        df = pd.read_sql(
+            "SELECT track_id, track_name, primary_artist_name AS artist FROM marts.mart_top_tracks",
+            conn,
+        )
+        return {row["track_id"]: {"name": row["track_name"], "artist": row["artist"]} for _, row in df.iterrows()}
+    finally:
+        conn.dispose()
