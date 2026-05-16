@@ -6,8 +6,8 @@ RUN apt-get update && apt-get install -y libpq-dev gcc python3-dev && rm -rf /va
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-COPY requirements.txt .
-RUN uv pip install --system --no-cache -r requirements.txt
+COPY pyproject.toml .
+RUN uv pip install --system --no-cache ".[api]"
 
 EXPOSE 8000
 

@@ -5,8 +5,8 @@ WORKDIR /app
 # install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-COPY consumer/requirements.txt .
-RUN uv pip install --system --no-cache -r requirements.txt
+COPY pyproject.toml .
+RUN uv pip install --system --no-cache ".[consumer]"
 
 # context will be set in docker compose file to be the project root directory because of requirements.txt
 COPY consumer/ ./consumer/

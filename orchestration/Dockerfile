@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y libpq-dev gcc python3-dev && rm -rf /va
 # install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-COPY orchestration/requirements.txt .
-RUN uv pip install --system --no-cache -r requirements.txt
+COPY pyproject.toml .
+RUN uv pip install --system --no-cache ".[orchestration]"
 
 COPY orchestration/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
