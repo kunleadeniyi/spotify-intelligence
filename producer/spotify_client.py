@@ -80,7 +80,10 @@ class SpotifyClient:
                 client_secret=os.environ["SPOTIFY_CLIENT_SECRET"],
                 redirect_uri=os.environ["SPOTIFY_REDIRECT_URI"],
                 scope=SCOPES,
-                cache_path=os.environ.get("SPOTIFY_TOKEN_CACHE", ".cache"),
+                cache_path=os.environ.get(
+                    "SPOTIFY_TOKEN_CACHE",
+                    os.path.join(os.path.dirname(__file__), "..", "cache", ".cache"),
+                ),
                 open_browser=False,
             )
         )
