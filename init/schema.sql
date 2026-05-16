@@ -74,3 +74,19 @@ GRANT CREATE ON SCHEMA feast TO "feast-sa";
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA staging GRANT SELECT ON TABLES TO "feast-sa";
 ALTER DEFAULT PRIVILEGES IN SCHEMA marts GRANT SELECT ON TABLES TO "feast-sa";
+
+-- debezium-sa: SELECT on captured schemas for initial snapshot
+GRANT USAGE ON SCHEMA raw TO "debezium-sa";
+GRANT SELECT ON ALL TABLES IN SCHEMA raw TO "debezium-sa";
+
+GRANT USAGE ON SCHEMA staging TO "debezium-sa";
+GRANT SELECT ON ALL TABLES IN SCHEMA staging TO "debezium-sa";
+
+GRANT USAGE ON SCHEMA marts TO "debezium-sa";
+GRANT SELECT ON ALL TABLES IN SCHEMA marts TO "debezium-sa";
+
+-- Publication for logical replication (covers tables Debezium will stream)
+CREATE PUBLICATION debezium_pub FOR TABLE
+    raw.play_events,
+    raw.track_audio_features,
+    raw.artist_genres;
