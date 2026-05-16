@@ -433,6 +433,46 @@ services:
     networks:
       - spotify-net
 
+  minio:
+    image: minio/minio:latest
+    container_name: si-minio
+    profiles: [cdc]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./volumes/minio/data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - spotify-net
+
+  minio-setup:
+    image: minio/mc:latest
+    container_name: si-minio-setup
+    profiles: [cdc]
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} &&
+        mc mb --ignore-existing local/cdc-data &&
+        mc admin user add local ${MINIO_CDC_ACCESS_KEY} ${MINIO_CDC_SECRET_KEY} &&
+        mc admin policy attach local readwrite --user ${MINIO_CDC_ACCESS_KEY} &&
+        echo 'MinIO setup complete.'
+      "
+    networks:
+      - spotify-net
+
 networks:
   spotify-net:
     driver: bridge
