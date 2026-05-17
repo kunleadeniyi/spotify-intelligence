@@ -1,0 +1,32 @@
+{
+  "name": "postgres-cdc-source",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "${DEBEZIUM_SA_USER}",
+    "database.password": "${DEBEZIUM_SA_PASSWORD}",
+    "database.dbname": "${PG_SPOTIFY_DB}",
+
+    "topic.prefix": "cdc",
+    "plugin.name": "pgoutput",
+    "publication.name": "debezium_pub",
+    "slot.name": "debezium_slot",
+
+    "table.include.list": "raw.play_events,raw.track_audio_features,raw.artist_genres",
+    "snapshot.mode": "initial",
+
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "true",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "true",
+
+    "errors.tolerance": "all",
+    "errors.deadletterqueue.topic.name": "cdc.dlq",
+    "errors.deadletterqueue.context.headers.enable": "true",
+    "errors.retry.timeout": "300000",
+    "errors.retry.delay.max.ms": "10000"
+  }
+}
