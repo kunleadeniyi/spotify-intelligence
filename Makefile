@@ -107,16 +107,18 @@ cdc-register:
 	@set -a && . ./.env && set +a && \
 		envsubst < debezium/connectors/source.json | \
 		python3 -c "import sys,json; d=json.load(sys.stdin); print(json.dumps(d['config']))" | \
-		curl -sf -X PUT http://localhost:8083/connectors/postgres-cdc-source/config \
+		curl -sf -o /dev/null -w "  → HTTP %{http_code}\n" \
+		-X PUT http://localhost:8083/connectors/postgres-cdc-source/config \
 		-H "Content-Type: application/json" \
-		-d @- | python3 -m json.tool
+		-d @-
 	@echo "Registering S3 sink connector..."
 	@set -a && . ./.env && set +a && \
 		envsubst < debezium/connectors/sink.json | \
 		python3 -c "import sys,json; d=json.load(sys.stdin); print(json.dumps(d['config']))" | \
-		curl -sf -X PUT http://localhost:8083/connectors/s3-cdc-sink/config \
+		curl -sf -o /dev/null -w "  → HTTP %{http_code}\n" \
+		-X PUT http://localhost:8083/connectors/s3-cdc-sink/config \
 		-H "Content-Type: application/json" \
-		-d @- | python3 -m json.tool
+		-d @-
 
 cdc-status:
 	@echo "=== Connectors ==="
