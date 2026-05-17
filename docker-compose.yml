@@ -41,6 +41,7 @@ services:
         /opt/kafka/bin/kafka-topics.sh --bootstrap-server broker:29092 --create --if-not-exists --topic spotify.play.events --partitions 3 --replication-factor 1 &&
         /opt/kafka/bin/kafka-topics.sh --bootstrap-server broker:29092 --create --if-not-exists --topic spotify.audio.features --partitions 1 --replication-factor 1 &&
         /opt/kafka/bin/kafka-topics.sh --bootstrap-server broker:29092 --create --if-not-exists --topic spotify.artist.genres --partitions 1 --replication-factor 1 &&
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server broker:29092 --create --if-not-exists --topic cdc.dlq --partitions 1 --replication-factor 1 &&
         echo 'Kafka topics created successfully.'
       "
     networks:
